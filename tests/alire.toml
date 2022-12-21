@@ -1,0 +1,25 @@
+name = "tests"
+description = "Shiny new project"
+version = "0.1.0-dev"
+
+authors = ["Holger Rodriguez"]
+maintainers = ["Holger Rodriguez <github@roseng.ch>"]
+maintainers-logins = ["hgrodriguez"]
+
+executables = ["tests"]
+
+[build-profiles]
+"*" = "development"
+
+[gpr-set-externals]
+#  I want all dependencies with full debug information
+ADAFLAGS="-g -Og"
+
+[[depends-on]]
+io_expander = "~0.1.0-dev"
+[[pins]]
+io_expander = { path='..' }
+[[depends-on]]
+ltp_305 = "~0.2.0"
+[[depends-on]]
+pico_bsp = "^2.0.0"

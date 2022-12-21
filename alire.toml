@@ -1,0 +1,15 @@
+name = "io_expander"
+description = "Shiny new project"
+version = "0.1.0-dev"
+
+authors = ["Holger Rodriguez"]
+maintainers = ["Holger Rodriguez <github@roseng.ch>"]
+maintainers-logins = ["hgrodriguez"]
+
+[gpr-set-externals]
+#  I want all dependencies with full debug information
+ADAFLAGS="-g -Og"
+
+[[depends-on]]
+embedded_components = "~0.2.0"
+
