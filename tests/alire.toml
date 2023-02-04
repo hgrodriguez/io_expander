@@ -23,3 +23,5 @@ io_expander = { path='..' }
 ltp_305 = "~0.2.0"
 [[depends-on]]
 pico_bsp = "^2.0.0"
+[[depends-on]]
+edc_client = "^1.5.0"

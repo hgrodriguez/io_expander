@@ -1,45 +1,73 @@
 with Ada.Unchecked_Conversion;
 
+with RP.Clock;
+with RP.Device;
 with RP.GPIO; use RP.GPIO;
 with RP.I2C_Master;
-with RP.Device;
-with RP.Clock;
+
 with Pico;
 
-with LTP_305;
-
 with Configuration;
-with LED_Matrix;
+
+with Edc_Client;
+with Edc_Client.LED;
+with Edc_Client.Matrix.Word;
+
+with Transmitter.UART.Pico;
 
 with Test_All_Outputs;
 with Test_All_Inputs;
+--  with Test_Shift_1Bit_Output;
 
 procedure Tests is
 
    procedure Reset_Status;
    procedure Reset_Status is
    begin
-      Configuration.LED_GREEN.Clear;
-      Configuration.LED_RED.Clear;
+      Edc_Client.LED.Green_Off;
+
+      Edc_Client.LED.Red_Off;
    end Reset_Status;
 
    procedure Display_Failure;
    procedure Display_Failure is
    begin
-      Configuration.LED_GREEN.Clear;
-      Configuration.LED_RED.Set;
+      Edc_Client.LED.Green_Off;
+
+      Edc_Client.LED.Red_On;
    end Display_Failure;
 
    procedure Display_Success;
    procedure Display_Success is
    begin
-      Configuration.LED_RED.Clear;
-      Configuration.LED_GREEN.Set;
+      Edc_Client.LED.Red_Off;
+
+      Edc_Client.LED.Green_On;
    end Display_Success;
+
+   procedure UART_Initialize;
+   procedure UART_Initialize is
+   begin
+      Configuration.UART_TX.Configure (RP.GPIO.Output,
+                                       RP.GPIO.Pull_Up,
+                                       RP.GPIO.UART);
+      Configuration.UART_RX.Configure (RP.GPIO.Input,
+                                       RP.GPIO.Floating,
+                                       RP.GPIO.UART);
+      Configuration.UART.Configure
+        (Config =>
+           (Baud      => Edc_Client.SERIAL_BAUD_RATE,
+            Word_Size => 8,
+            Parity    => False,
+            Stop_Bits => 1,
+            others    => <>));
+   end UART_Initialize;
 
 begin
    RP.Clock.Initialize (Pico.XOSC_Frequency);
+   RP.Clock.Enable (RP.Clock.PERI);
    RP.Device.Timer.Enable;
+   RP.GPIO.Enable;
 
    Configuration.SDA_LED.Configure (RP.GPIO.Output,
                       RP.GPIO.Pull_Up,
@@ -51,8 +79,7 @@ begin
                       Schmitt => True);
    Configuration.Port_LED.Configure (400_000);
 
-   LTP_305.Initialize (This    => Configuration.Port_LED'Access,
-                       Address => Configuration.Address_LED);
+   UART_Initialize;
 
    Configuration.RESET_EXPANDER.Configure (RP.GPIO.Output,
                            RP.GPIO.Pull_Up,
@@ -70,16 +97,11 @@ begin
                       Schmitt => True);
    Configuration.Port_EXPANDER.Configure (400_000);
 
-   Configuration.LED_RED.Configure (RP.GPIO.Output,
-                                         RP.GPIO.Pull_Down,
-                                         RP.GPIO.SIO,
-                                         Schmitt => True);
-   Configuration.LED_GREEN.Configure (RP.GPIO.Output,
-                                         RP.GPIO.Pull_Down,
-                                         RP.GPIO.SIO,
-                                         Schmitt => True);
+   Edc_Client.Initialize (T => Transmitter.UART.Pico.Transmit_Control'Access);
 
-   LED_Matrix.Show_Hex (Number => 1);
+   Reset_Status;
+
+   Edc_Client.Matrix.Word.Show_LSB (Value => 1);
    Reset_Status;
    if Test_All_Outputs.Check then
       Display_Success;
@@ -87,12 +109,27 @@ begin
       Display_Failure;
    end if;
 
-   LED_Matrix.Show_Hex (Number => 2);
+   Edc_Client.Matrix.Word.Show_LSB (Value => 2);
    Reset_Status;
-   if Test_All_Inputs.Check then
+   if Test_All_Inputs.Check_Non_Inverted then
       Display_Success;
    else
       Display_Failure;
    end if;
 
+   Edc_Client.Matrix.Word.Show_LSB (Value => 3);
+   Reset_Status;
+   if Test_All_Inputs.Check_Inverted then
+      Display_Success;
+   else
+      Display_Failure;
+   end if;
+
+   --     LED_Matrix.Show_Hex (Number => 3);
+--     Reset_Status;
+--     if Test_Shift_1Bit_Output.Check then
+--        Display_Success;
+--     else
+--        Display_Failure;
+--     end if;
 end Tests;

@@ -55,7 +55,14 @@ package body Test_All_Outputs is
    end Check;
 
    procedure Initialize is
+      T          : RP.Timer.Interrupts.Delays;
    begin
+      T.Enable;
+      Configuration.RESET_EXPANDER.Clear;
+      T.Delay_Milliseconds (1);
+      Configuration.RESET_EXPANDER.Set;
+      T.Disable;
+
       My_Expander.Configure (Pin     => MCP23x08.Pin_0,
                              Output  => True,
                              Pull_Up => True);

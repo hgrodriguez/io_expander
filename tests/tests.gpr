@@ -2,7 +2,7 @@ with "config/tests_config.gpr";
 
 with "io_expander.gpr";
 
-with "ltp_305.gpr";
+with "edc_client.gpr";
 
 with "pico_bsp.gpr";
 
